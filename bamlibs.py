@@ -26,7 +26,7 @@ description: output comma delimited string of read group IDs for each library")
     args = parser.parse_args()
 
     # if no input, check if part of pipe and if so, read stdin.
-    if args.input == None:
+    if args.input is None:
         if sys.stdin.isatty():
             parser.print_help()
             exit(1)
@@ -39,9 +39,9 @@ description: output comma delimited string of read group IDs for each library")
 # add read group info to header of new sam file
 def get_libs(bam, is_sam, header_only):
     if is_sam:
-        in_bam = pysam.Samfile(bam, 'r', check_sq=False)
+        in_bam = pysam.AlignmentFile(bam, 'r', check_sq=False)
     else:
-        in_bam = pysam.Samfile(bam, 'rb', check_sq=False)
+        in_bam = pysam.AlignmentFile(bam, 'rb', check_sq=False)
 
     lib_rg = defaultdict(list)
     for line in in_bam.text.split('\n'):
@@ -58,7 +58,7 @@ def get_libs(bam, is_sam, header_only):
 
     # print
     for lib in lib_rg:
-        print ','.join(lib_rg[lib])
+        print(','.join(lib_rg[lib]))
     in_bam.close()
 
     return
@@ -77,6 +77,6 @@ def main():
 if __name__ == '__main__':
     try:
         sys.exit(main())
-    except IOError, e:
+    except IOError as e:
         if e.errno != 32:  # ignore SIGPIPE
             raise

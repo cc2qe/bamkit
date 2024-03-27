@@ -4,12 +4,11 @@
 #/gapp/x64linux/opt/pythonbrew/venvs/Python-2.7.6/gemini/bin/python
 # for uva cluster:
 
+
 import pysam
 import sys
 import argparse
 from argparse import RawTextHelpFormatter
-import string
-from string import *
 
 __author__ = "Ira Hall (ihall@genome.wustl.edu) and Colby Chiang (cc2qe@virginia.edu)"
 __version__ = "$Revision: 0.0.1 $"
@@ -18,16 +17,16 @@ __date__ = "$Date: 2014-09-04 14:31 $"
 def bamtofastq(bamlist, is_sam, readgroup, rename, header):
     for bamfile in bamlist:
         # get file and header
-        if bamfile == None: 
+        if bamfile is None: 
             if is_sam:
-                bam = pysam.Samfile("-", "r", check_sq=False)
+                bam = pysam.AlignmentFile("-", "r", check_sq=False)
             else:
-                bam = pysam.Samfile('-', 'rb', check_sq=False)
+                bam = pysam.AlignmentFile('-', 'rb', check_sq=False)
         else:
             if is_sam:
-                bam = pysam.Samfile(bamfile, 'r', check_sq=False)
+                bam = pysam.AlignmentFile(bamfile, 'r', check_sq=False)
             else:
-                bam = pysam.Samfile(bamfile, "rb", check_sq=False)
+                bam = pysam.AlignmentFile(bamfile, "rb", check_sq=False)
         # parse readgroup string
         try:
             rg_list = readgroup.split(',')
@@ -55,35 +54,35 @@ def bamtofastq(bamlist, is_sam, readgroup, rename, header):
                 continue
 
             # must be in a user specified readgroup
-            if rg_list and al.opt('RG') not in rg_list:
+            if rg_list and al.get_tag('RG') not in rg_list:
                 continue
 
             # ensures the read is not hard-clipped. important
             # when the BAM doesn't have shorter hits flagged as
             # secondary
-            if al.cigar is not None and 5 in [x[0] for x in al.cigar]:
+            if al.cigartuples is not None and 5 in [x[0] for x in al.cigartuples]:
                 continue
 
             # add read name to dictionary if not already there
-            key = al.qname
+            key = al.query_name
             if key not in d:
                 d.setdefault(key,al)
             # print matched read pairs
             else:
                 # RG:Z:ID
                 try:
-                    RG1 = d[key].opt('RG')
+                    RG1 = d[key].get_tag('RG')
                 except KeyError:
                     RG1 = ""
                 try:
-                    RG2 = al.opt('RG')
+                    RG2 = al.get_tag('RG')
                 except KeyError:
                     RG2 = ""
 
                 counter += 1
                 if rename:
-                    al.qname = RG2 + '.' + str(counter)
-                    d[key].qname = RG1 + '.' + str(counter)
+                    al.query_name = RG2 + '.' + str(counter)
+                    d[key].query_name = RG1 + '.' + str(counter)
 
                 if al.is_read1:
                     printfastq_rg(al,1,RG2)
@@ -129,22 +128,23 @@ description: Convert a coordinate sorted BAM file to FASTQ\n\
     # send back the user input
     return args
 
+def revcomp(seq):
+    seq1 = seq.translate(str.maketrans("AGCTagct", "TCGAtcga"))
+    seq2 = seq1[::-1]
+    return seq2
+
 def printfastq(al,read):
     if(al.is_reverse):
-        print "@" + str(al.qname) + "/" + str(read) + "\n" + str(revcomp(al.seq)) + "\n" + "+" + "\n" + str(al.qual[::-1])
+        print("@" + str(al.query_name) + "/" + str(read) + "\n" + str(revcomp(al.seq)) + "\n" + "+" + "\n" + str(al.qual[::-1]))
     else: 
-        print "@" + str(al.qname) + "/" + str(read) + "\n" + str(al.seq) + "\n" + "+" + "\n" + str(al.qual)
+        print("@" + str(al.query_name) + "/" + str(read) + "\n" + str(al.seq) + "\n" + "+" + "\n" + str(al.qual))
 
 def printfastq_rg(al,read, rg):
     if(al.is_reverse):
-        print "@" + str(al.qname) + "/" + str(read) + " " + "RG:Z:" + str(rg) + "\n" + str(revcomp(al.seq)) + "\n" + "+" + "\n" + str(al.qual[::-1])
+        print("@" + str(al.query_name) + "/" + str(read) + " " + "RG:Z:" + str(rg) + "\n" + str(revcomp(al.seq)) + "\n" + "+" + "\n" + str(al.qual[::-1]))
     else: 
-        print "@" + str(al.qname) + "/" + str(read) + " " + "RG:Z:" + str(rg) + "\n" + str(al.seq) + "\n" + "+" + "\n" + str(al.qual)
+        print("@" + str(al.query_name) + "/" + str(read) + " " + "RG:Z:" + str(rg) + "\n" + str(al.seq) + "\n" + "+" + "\n" + str(al.qual))
 
-def revcomp(seq):
-    seq1 = seq.translate(maketrans("AGCTagct", "TCGAtcga"))
-    seq2 = seq1[::-1]
-    return seq2
 
 #===================================================================================================================================================
 # driver
@@ -166,7 +166,7 @@ def main():
 if __name__ == "__main__":
     try:
         sys.exit(main())
-    except IOError, e:
+    except IOError as e:
         if e.errno != 32:  # ignore SIGPIPE
             raise
     
