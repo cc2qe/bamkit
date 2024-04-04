@@ -40,10 +40,10 @@ description: Inject readgroup info")
 # extract read group information from header of original bam
 def extract_rg_info(donor, donor_is_sam, rgs_to_extract):
     if donor_is_sam:
-        bam = pysam.Samfile(donor, 'r', check_sq=False)
+        bam = pysam.AlignmentFile(donor, 'r', check_sq=False)
     else:
-        bam = pysam.Samfile(donor, 'rb', check_sq=False)
-    rg_out = list()
+        bam = pysam.AlignmentFile(donor, 'rb', check_sq=False)
+    rg_out = []
     for line in bam.text.split('\n'):
         if line[:3] == "@RG":
             v = line.rstrip().split('\t')
@@ -71,9 +71,9 @@ def bamheadrg(recipient, rg_out):
         if in_header:
             if line[0] != '@':
                 for readgroup in rg_out:
-                    print '@RG\t' + '\t'.join([':'.join((t,readgroup[t])) for t in readgroup])
+                    print('@RG\t' + '\t'.join([':'.join((t,readgroup[t])) for t in readgroup]))
                 in_header = False
-        print line.rstrip()
+        print(line.rstrip())
     return
 
 # --------------------------------------
@@ -101,6 +101,6 @@ def main():
 if __name__ == '__main__':
     try:
         sys.exit(main())
-    except IOError, e:
+    except IOError as e:
         if e.errno != 32:  # ignore SIGPIPE
             raise

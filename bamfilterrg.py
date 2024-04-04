@@ -8,8 +8,6 @@ import pysam
 import sys
 import argparse
 from argparse import RawTextHelpFormatter
-import string
-from string import *
 
 __author__ = "Colby Chiang (cc2qe@virginia.edu)"
 __version__ = "$Revision: 0.0.1 $"
@@ -17,24 +15,24 @@ __date__ = "$Date: 2015-01-01 16:58 $"
 
 def bamfilterrg(bamfile, readgroup, limit, is_sam, bam_out, uncompressed_out):
     # set input file
-    if bamfile == None: 
+    if bamfile is None: 
         if is_sam:
-            in_bam = pysam.Samfile("-", "r")
+            in_bam = pysam.AlignmentFile('-', 'r')
         else:
-            in_bam = pysam.Samfile('-', 'rb')
+            in_bam = pysam.AlignmentFile('-', 'rb')
     else:
         if is_sam:
-            in_bam = pysam.Samfile(bamfile, 'r')
+            in_bam = pysam.AlignmentFile(bamfile, 'r')
         else:
-            in_bam = pysam.Samfile(bamfile, "rb")
+            in_bam = pysam.AlignmentFile(bamfile, 'rb')
 
     # set output file
     if uncompressed_out:
-        out_bam = pysam.Samfile('-', 'wbu', template=in_bam)
+        out_bam = pysam.AlignmentFile('-', 'wbu', template=in_bam)
     elif bam_out:
-        out_bam = pysam.Samfile('-', 'wb', template=in_bam)
+        out_bam = pysam.AlignmentFile('-', 'wb', template=in_bam)
     else:
-        out_bam = pysam.Samfile('-', 'wh', template=in_bam)
+        out_bam = pysam.AlignmentFile('-', 'wh', template=in_bam)
         
 
     # parse readgroup string
@@ -46,7 +44,7 @@ def bamfilterrg(bamfile, readgroup, limit, is_sam, bam_out, uncompressed_out):
     counter = 0
     for al in in_bam:
         # must be in a user specified readgroup
-        if rg_list and al.opt('RG') not in rg_list:
+        if rg_list and al.get_tag('RG') not in rg_list:
             continue
 
         # write out alignment
@@ -54,10 +52,8 @@ def bamfilterrg(bamfile, readgroup, limit, is_sam, bam_out, uncompressed_out):
         counter += 1
         
         # bail if reached limit
-        if (limit != None
-            and counter >= limit):
+        if limit is not None and counter >= limit:
             break
-
 
 # ============================================
 # functions
@@ -67,7 +63,7 @@ def bamfilterrg(bamfile, readgroup, limit, is_sam, bam_out, uncompressed_out):
 class Namegroup():
     def __init__(self, al):
         self.alignments = list()
-        self.name = al.qname
+        self.name = al.query_name
         self.sa = 0
         self.num_prim = 0
         self.add_alignment(al)
@@ -77,8 +73,8 @@ class Namegroup():
         if not al.is_secondary:
             self.num_prim += 1
             try:
-                self.sa += len(al.opt('SA').rstrip(';').split(';'))
                 # print self.sa
+                self.sa += len(al.get_tag('SA').rstrip(';').split(';'))
             except KeyError:
                 pass
 
@@ -125,7 +121,7 @@ def main():
 if __name__ == "__main__":
     try:
         sys.exit(main())
-    except IOError, e:
+    except IOError as e:
         if e.errno != 32:  # ignore SIGPIPE
             raise
     

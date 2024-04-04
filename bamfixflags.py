@@ -127,10 +127,10 @@ def bamfixflags(bamfile,
             lib_mean = mean(lib_hist)
             lib_sd = stdev(lib_hist)
 
-            print 'p25', p25
-            print 'p75', p75
-            print 'mean', lib_mean
-            print 'sd', lib_sd
+            print('p25', p25)
+            print('p75', p75)
+            print('mean', lib_mean)
+            print('sd', lib_sd)
 
             low = int(p25 - mapping_bound * (p75 - p25) + .499)
             high = int(p75 + mapping_bound * (p75 - p25) + .499)
@@ -171,51 +171,51 @@ def bamfixflags(bamfile,
     else:
         out_bam = pysam.Samfile('-', 'wh', template=in_bam)
         
-    print proper
+    print(proper)
     for al in in_bam:
         # out_bam.write(al)
-        print al
+        print(al)
 
         if al.is_supplementary:
             pass
 
         elif al.is_unmapped or al.mate_is_unmapped:
             if al.is_proper_pair:
-                print 'mismarked proper (unmapped)'
+                print('mismarked proper (unmapped)')
             al.is_proper_pair = False
 
         elif al.reference_id != al.next_reference_id:
             if al.is_proper_pair:
-                print 'mismarked proper (chrom)'
+                print('mismarked proper (chrom)')
             al.is_proper_pair = False
 
         elif (al.reference_start < al.next_reference_start
             and (al.is_reverse or not al.mate_is_reverse)):
             if al.is_proper_pair:
-                print 'mismarked proper (orient +)'
+                print('mismarked proper (orient +)')
             al.is_proper_pair = False
 
         elif (al.reference_start > al.next_reference_start
             and (not al.is_reverse or al.mate_is_reverse)):
             if al.is_proper_pair:
-                print 'mismarked proper (orient -)'
+                print('mismarked proper (orient -)')
             al.is_proper_pair = False
 
         # if al.supp
         elif (al.template_length >= proper[al.opt('RG')][0]
               and al.template_length <= proper[al.opt('RG')][1]):
             if not al.is_proper_pair:
-                print 'mismarked improper (insert size)'
+                print('mismarked improper (insert size)')
             al.is_proper_pair = True
         else:
             if al.is_proper_pair:
-                print 'mismarked proper (insert size)'
+                print('mismarked proper (insert size)')
             al.is_proper_pair = False
 
         # out_bam.write(al)
-        print al
         # print proper[al.opt('RG')], al.template_length
         # print al
+        print(al)
         # # must be in a user specified readgroup
         # if al.opt('RG') not in rg_list:
         #     continue
@@ -301,7 +301,7 @@ def main():
 if __name__ == "__main__":
     try:
         sys.exit(main())
-    except IOError, e:
+    except IOError as e:
         if e.errno != 32:  # ignore SIGPIPE
             raise
     

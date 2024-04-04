@@ -38,7 +38,7 @@ description: remove illegal and malformed fields from a BAM file's header")
 
 # extract read group information from header of original bam
 def get_clean_header(bam):
-    clean_header_list = list()
+    clean_header_list = []
     for line in bam.text.split('\n'):
         if len(line.rstrip()) == 0:
             continue
@@ -101,17 +101,15 @@ def get_clean_header(bam):
 # add read group info to header of new sam file
 def bam_clean(bam, is_sam, header_only):
     if is_sam:
-        in_bam = pysam.Samfile(bam, 'r', check_sq=False)
+        in_bam = pysam.AlignmentFile(bam, 'r', check_sq=False)
     else:
-        in_bam = pysam.Samfile(bam, 'rb', check_sq=False)
+        in_bam = pysam.AlignmentFile(bam, 'rb', check_sq=False)
 
-    # out_bam = pysam.Samfile('-', 'w', template=in_bam)
-
-    print get_clean_header(in_bam)
+    print(get_clean_header(in_bam))
 
     if not header_only:
         for al in in_bam:
-            print al
+            print(al)
 
     # # this code leads to pipeing errors
     # if not header_only:
@@ -140,6 +138,6 @@ def main():
 if __name__ == '__main__':
     try:
         sys.exit(main())
-    except IOError, e:
+    except IOError as e:
         if e.errno != 32:  # ignore SIGPIPE
             raise
